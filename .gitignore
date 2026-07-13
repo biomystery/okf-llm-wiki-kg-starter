@@ -1,0 +1,28 @@
+# Raw source material — immutable, often private/large/copyrighted. Keep local.
+/raw/**
+!/raw/README.md
+
+# Build output
+/_site/
+/.cache/
+
+# Obsidian per-user / volatile state (keep shared config, ignore local workspace)
+/.obsidian/workspace*.json
+/.obsidian/workspace*
+/.obsidian/graph.json
+/.obsidian/hotkeys.json
+/.obsidian/plugins/
+/.obsidian/themes/
+
+# OS / editor cruft
+.DS_Store
+*.swp
+Thumbs.db
+
+# Data artifacts (in case analysis lands here)
+*.h5ad
+*.rds
+*.loom
+*.mtx
+results/
+processed/
