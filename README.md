@@ -25,7 +25,7 @@ flowchart LR
         W["wiki/ — OKF pages<br/>index.md · log.md"]
     end
     R -- "ingest<br/>(okf-wiki skill)" --> W
-    W -- "lint<br/>(lint-wiki.py + LLM)" --> W
+    L(["lint<br/>lint-wiki.py + LLM"]) -.-> W
     U([you]) <-- "ask · answer<br/>with citations" --> W
     W -- "build-site.sh<br/>(resolver + mkdocs)" --> H["_site/<br/>static HTML + search"]
 ```

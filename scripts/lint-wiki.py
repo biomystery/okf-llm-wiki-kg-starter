@@ -8,6 +8,7 @@ Errors (exit 1):
   - page absent from wiki/index.md
 
 Warnings (exit 0):
+  - ambiguous [[wikilink]] matching more than one page (alias collision)
   - `raw:` frontmatter path that doesn't exist locally (raw/ is git-ignored, so
     this is expected on fresh clones)
   - page whose `type` has no templates/<type>.md (unregistered schema — see CLAUDE.md)
@@ -26,20 +27,25 @@ TEMPLATES = ROOT / "templates"
 SPECIAL = {"index.md", "log.md"}
 
 # [[Target]], [[Target|display]], [[Target#Heading]], ![[Embed]]
-WIKILINK = re.compile(r"!?\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|[^\]]*)?\]\]")
+WIKILINK = re.compile(r"(!?)\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|[^\]]*)?\]\]")
 FENCE = re.compile(r"^(```|~~~).*?^\1\s*$", re.M | re.S)
 INLINE_CODE = re.compile(r"`[^`\n]*`")
+# Link targets with these extensions are attachments, not pages — out of scope.
+ASSET_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".pdf",
+              ".mp3", ".mp4", ".mov", ".canvas", ".base"}
 
 
 def split_frontmatter(text):
     """Return (frontmatter dict or None, body)."""
     if not text.startswith("---\n"):
         return None, text
-    end = text.find("\n---", 4)
-    if end == -1:
+    # Closing delimiter is a line that is exactly `---` (not `----`, not `--- x`).
+    end_m = re.search(r"^---[ \t]*$", text[4:], re.M)
+    if not end_m:
         return None, text
+    block, body = text[4:4 + end_m.start()], text[4 + end_m.end():]
     fm, key = {}, None
-    for line in text[4:end].splitlines():
+    for line in block.splitlines():
         if not line.strip() or line.lstrip().startswith("#"):
             continue
         kv = re.match(r"^([A-Za-z_][\w-]*):\s*(.*)$", line)
@@ -52,7 +58,7 @@ def split_frontmatter(text):
                 v = item.group(1).strip().strip("\"'")
                 prev = fm.get(key)
                 fm[key] = (prev if isinstance(prev, list) else ([prev] if prev else [])) + [v]
-    return fm, text[end + 4:]
+    return fm, body
 
 
 def as_list(val):
@@ -61,7 +67,9 @@ def as_list(val):
     if isinstance(val, list):
         return val
     if val.startswith("[") and val.endswith("]"):
-        return [x.strip().strip("\"'") for x in val[1:-1].split(",") if x.strip()]
+        # Quote-aware split: `[foo, "bar, baz"]` -> ['foo', 'bar, baz'].
+        items = re.findall(r'\s*("[^"]*"|\'[^\']*\'|[^,]+)', val[1:-1])
+        return [x.strip().strip("\"'") for x in items if x.strip()]
     return [val]
 
 
@@ -100,12 +108,15 @@ def main():
     inbound = {p: 0 for p in content_pages}
     for p, (fm, body) in pages.items():
         for m in WIKILINK.finditer(strip_code(body)):
-            name = m.group(1).strip()
-            if "." in name and not name.lower().endswith(".md"):
-                continue  # embedded asset (image/pdf), out of scope
+            name = m.group(2).strip()
+            if Path(name).suffix.lower() in ASSET_EXTS:
+                continue  # attachment (image/pdf/canvas), out of scope
             hits = targets.get(name.removesuffix(".md").lower(), set())
             if not hits:
                 errors.append(f"{p.relative_to(ROOT)}: broken wikilink [[{name}]]")
+            elif len(hits) > 1:
+                candidates = ", ".join(sorted(str(h.relative_to(WIKI)) for h in hits))
+                warnings.append(f"{p.relative_to(ROOT)}: ambiguous wikilink [[{name}]] matches {len(hits)} pages: {candidates}")
             for h in hits:
                 if h != p and p.name not in SPECIAL:
                     inbound[h] += 1
@@ -113,7 +124,7 @@ def main():
     # Index consistency.
     index = WIKI / "index.md"
     if index in pages:
-        listed = {m.group(1).strip().lower() for m in WIKILINK.finditer(pages[index][1])}
+        listed = {m.group(2).strip().lower() for m in WIKILINK.finditer(pages[index][1])}
         for p in content_pages:
             fm, _ = pages[p]
             names = {p.stem.lower()} | {n.lower() for n in as_list(fm.get("aliases") if fm else None)}
@@ -132,7 +143,7 @@ def main():
             warnings.append(f"{p.relative_to(ROOT)}: raw source not found locally: {raw}")
 
     # Unregistered types (no template) and orphans.
-    known_types = {t.stem for t in TEMPLATES.glob("*.md")} | {"moc"}
+    known_types = {t.stem for t in TEMPLATES.glob("*.md")}
     for p in content_pages:
         fm, _ = pages[p]
         t = fm.get("type") if fm else None

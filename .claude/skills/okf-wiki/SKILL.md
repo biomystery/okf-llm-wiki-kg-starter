@@ -14,7 +14,8 @@ vault does not use.
 ## Format rules (always)
 
 - Pages live at `wiki/<type>/<concept>.md` — **type-based** dirs (`concepts/`, `refs/`,
-  `people/`, `projects/`, `experiments/`, …), one level deep.
+  `people/`, `projects/`, `experiments/`, `mocs/`, …), one level deep. Only `index.md`
+  (the root MOC) and `log.md` sit at the top of `wiki/`.
 - Every page starts with YAML frontmatter; `type:` is required. Copy the matching file in
   `templates/` for the full field set (references carry provenance: `year`, `source`,
   `doi`/`pmid`, `url`, `raw`).

@@ -11,13 +11,15 @@ skill, whose output format does not match this vault (see "Divergence" below).
 - **`raw/`** — immutable sources. Read, never modify. Git-ignored. Organized by topic:
   `raw/<topic>/`.
 - **`wiki/`** — LLM-maintained OKF pages. You own these fully. Organized **by type**:
-  `wiki/<type>/<concept>.md` (one level of subdirectory), plus top-level project/MOC pages.
-  Two special files:
-  - `wiki/index.md` — catalog / progressive-disclosure entry point. **Read first** on query.
+  `wiki/<type>/<concept>.md` (one level of subdirectory) — every typed page lives in its
+  type dir, including projects (`wiki/projects/`) and topic MOCs (`wiki/mocs/`).
+  The only top-level files are two special ones:
+  - `wiki/index.md` — catalog / progressive-disclosure entry point (the root MOC).
+    **Read first** on query.
   - `wiki/log.md` — append-only operation log.
 - **`templates/`** — OKF frontmatter templates for new pages (`concept.md`, `reference.md`,
-  `person.md`, `project.md`, `moc.md`, `raw-source.md`). Doubles as the **schema registry**
-  (see "Flexible schema" below).
+  `person.md`, `project.md`, `experiment.md`, `moc.md`, `raw-source.md`). Doubles as the
+  **schema registry** (see "Flexible schema" below).
 - **`.claude/skills/okf-wiki/`** — the vault's own ingest/query/lint skill.
 - **`scripts/lint-wiki.py`** — deterministic lint (stdlib-only); run before the heuristic pass.
 
@@ -91,11 +93,13 @@ should link to its relevant MOC/project page. Cross-link related concepts libera
 ## Lint (quality checks)
 
 Run `python3 scripts/lint-wiki.py` first — it deterministically checks frontmatter validity,
-broken wikilinks, index ↔ file consistency, `raw:` paths, unregistered types, and orphans.
-Then:
-Auto-fix: index ↔ files consistency; broken `[[wikilink]]` targets (fix if exactly one match,
-else report); Raw-provenance paths; missing/dead See-Also cross-refs.
-Report only (never auto-delete): contradictions, stale claims, orphan pages, missing
+broken/ambiguous wikilinks, index ↔ file consistency, `raw:` paths, unregistered types, and
+orphans. Then:
+
+**Auto-fix:** index ↔ files consistency; broken `[[wikilink]]` targets (fix if exactly one
+match, else report); Raw-provenance paths; missing/dead See-Also cross-refs.
+
+**Report only (never auto-delete):** contradictions, stale claims, orphan pages, missing
 cross-topic refs, concepts frequently referenced but lacking a page.
 Append `## [YYYY-MM-DD] lint | <N> issues found, <M> auto-fixed` to `wiki/log.md`.
 
