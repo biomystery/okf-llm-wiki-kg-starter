@@ -15,10 +15,19 @@ This repo is a **clean template** — no domain content. Clone it, drop your sou
 
 ## The workflow at a glance
 
-```
-topic sources ─▶ raw/ (immutable) ─▶ [LLM: ingest] ─▶ wiki/ (OKF pages) ─▶ [resolver+mkdocs] ─▶ static HTML site
-                                          │                                        ▲
-                                          └── query / lint ───────────────────────┘
+```mermaid
+flowchart LR
+    S([topic sources<br/>PDFs · pages · notes]) --> R
+    subgraph local["local only · git-ignored"]
+        R["raw/<br/>immutable sources"]
+    end
+    subgraph vault["tracked Obsidian vault"]
+        W["wiki/ — OKF pages<br/>index.md · log.md"]
+    end
+    R -- "ingest<br/>(okf-wiki skill)" --> W
+    L(["lint<br/>lint-wiki.py + LLM"]) -.-> W
+    U([you]) <-- "ask · answer<br/>with citations" --> W
+    W -- "build-site.sh<br/>(resolver + mkdocs)" --> H["_site/<br/>static HTML + search"]
 ```
 
 See **[WORKFLOW.md](WORKFLOW.md)** for the full step-by-step. The LLM's operating rules
@@ -31,8 +40,9 @@ live in **[CLAUDE.md](CLAUDE.md)** (the "schema layer"). How this maps onto OKF 
 |---|---|---|
 | `raw/` | ❌ git-ignored | Immutable source material (PDFs, pasted text, exports). Read, never modify. |
 | `wiki/` | ✅ | LLM-maintained OKF knowledge pages. Type-based subdirs + `index.md` + `log.md`. |
-| `templates/` | ✅ | OKF-adapted frontmatter templates for new pages. |
-| `scripts/` | ✅ | `build-site.sh` — render `wiki/` to a static site. |
+| `templates/` | ✅ | OKF-adapted frontmatter templates — also the vault's schema registry. |
+| `scripts/` | ✅ | `build-site.sh` (render static site) + `lint-wiki.py` (deterministic checks). |
+| `.claude/skills/okf-wiki/` | ✅ | The vault's bundled ingest/query/lint skill for Claude Code. |
 | `.obsidian/` | ✅ | Minimal, clean vault config (no community plugins bundled). |
 | `CLAUDE.md`, `WORKFLOW.md`, `OKF.md` | ✅ | Schema layer + docs. |
 
@@ -44,16 +54,48 @@ live in **[CLAUDE.md](CLAUDE.md)** (the "schema layer"). How this maps onto OKF 
 
 1. **Clone this template**, then open the folder as a vault in [Obsidian](https://obsidian.md).
 2. **Add a source:** drop a file into `raw/<topic>/`, or paste text and ask your LLM to ingest.
-3. **Ingest** (in Claude Code, with the `karpathy-llm-wiki` skill):
+3. **Ingest** (in Claude Code — the vault bundles its own `okf-wiki` project skill under
+   `.claude/skills/`, so no install is needed):
    > "Add this to the wiki" / "Ingest raw/papers/foo.pdf"
 
    The LLM creates/updates OKF pages under `wiki/`, wires `[[wikilinks]]`, and logs it.
 4. **Query:** "What do I know about X?" — the LLM reads `wiki/index.md` and answers with citations.
-5. **Lint** periodically: "Lint the wiki" — fixes broken links, flags orphans/contradictions.
+5. **Lint** periodically: "Lint the wiki" — or run the deterministic pass yourself:
+   ```sh
+   python3 scripts/lint-wiki.py      # frontmatter, broken wikilinks, index sync, orphans
+   ```
 6. **Publish** to a static site:
    ```sh
    ./scripts/build-site.sh ./ ./_site        # renders wiki/ → ./_site
    ```
+
+## Day-to-day use: three loops
+
+**1 · Author / ingest (Obsidian is the reading & capture surface).** Drop sources into
+`raw/<topic>/`; images/PDFs pasted into notes land in `raw/attachments/` (git-ignored)
+automatically. The graph, search, and link autocomplete show **only `wiki/`** — `raw/`,
+`templates/`, `scripts/`, and build output are excluded via Obsidian's "Excluded files", so
+the graph *is* the knowledge graph. Bookmarks (star icon) pin `wiki/index.md` and
+`wiki/log.md` as entry points.
+
+**2 · Ask (the agent runs beside the vault).** In a terminal at the vault root:
+
+```sh
+claude                      # then: "What do I know about <topic>?"
+```
+
+The bundled `okf-wiki` skill makes any Claude Code session vault-aware: it reads
+`wiki/index.md`, synthesizes with citations, and only writes when you ask it to ingest or
+archive. To ask *from inside Obsidian*, install a terminal-style plugin per-user (e.g.
+**Shell commands** or **Terminal**) and bind a command that launches `claude` at the vault
+root — deliberately not bundled (see plugin policy in [CLAUDE.md](CLAUDE.md)). With the
+Obsidian CLI installed, the agent can also drive the app directly (open the answer page,
+search, screenshot the graph).
+
+**3 · Publish (optional).** `./scripts/build-site.sh` renders `wiki/` → `_site/` static
+HTML with resolved links and client-side search; preview with
+`python3 -m http.server -d _site 8090`. The site is a disposable build artifact — only
+`wiki/` is the source of truth.
 
 ## Publishing
 

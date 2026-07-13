@@ -15,10 +15,26 @@ raw/<topic>/YYYY-MM-DD-descriptive-slug.md   (or .pdf, etc.)
 `raw/` is **immutable** and **git-ignored**. It is the ground truth the wiki is distilled
 from. Never hand-edit a raw file after capture; if a source changes, add a new dated file.
 
-## 2. Ingest → `wiki/` (LLM-wiki skill)
+## 2. Ingest → `wiki/` (bundled `okf-wiki` skill)
 
-Use the `karpathy-llm-wiki` skill (or drive Claude Code directly with [CLAUDE.md](CLAUDE.md)
-as the schema layer). The LLM:
+Use the bundled [`okf-wiki`](.claude/skills/okf-wiki/SKILL.md) project skill (it ships with
+the vault; [CLAUDE.md](CLAUDE.md) is the underlying schema layer).
+
+```mermaid
+sequenceDiagram
+    actor U as You
+    participant C as Claude (okf-wiki skill)
+    participant R as raw/
+    participant W as wiki/
+    U->>C: "Ingest <source>"
+    C->>R: save dated source + provenance
+    C->>W: create / merge typed OKF page, wire [[wikilinks]]
+    C->>W: cascade-update affected pages, refresh timestamps
+    C->>W: update index.md · append log.md
+    C-->>U: summary of pages touched
+```
+
+The LLM:
 
 - picks/creates the right **type-based** subdirectory (`concepts/`, `refs/`, `people/`, …),
 - writes an **OKF page** — YAML frontmatter (required `type`, plus `title`, `description`,

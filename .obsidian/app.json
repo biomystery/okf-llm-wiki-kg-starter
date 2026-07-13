@@ -1,7 +1,14 @@
 {
   "alwaysUpdateLinks": true,
   "newFileLocation": "current",
-  "attachmentFolderPath": "./attachments",
+  "attachmentFolderPath": "raw/attachments",
   "promptDelete": true,
-  "useMarkdownLinks": false
+  "useMarkdownLinks": false,
+  "userIgnoreFilters": [
+    "raw/",
+    "templates/",
+    "scripts/",
+    ".cache/",
+    "_site/"
+  ]
 }
