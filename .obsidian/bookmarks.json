@@ -1,0 +1,14 @@
+{
+  "items": [
+    {
+      "type": "file",
+      "path": "wiki/index.md",
+      "title": "Index (start here)"
+    },
+    {
+      "type": "file",
+      "path": "wiki/log.md",
+      "title": "Operation log"
+    }
+  ]
+}
