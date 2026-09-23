@@ -18,7 +18,7 @@ generated: { by: <actor>, at: <YYYY-MM-DDTHH:MM:SSZ> }
 # verified: { by: human:<id>, at: <YYYY-MM-DDTHH:MM:SSZ> }
 # stale_after: <YYYY-MM-DDTHH:MM:SSZ>
 sources:
-  - id: <source-id>
+  - id: source-id                   # stable slug; the body's [^source-id] footnote joins to it
     resource: <policy / definition URL>
     title: <the definition this computation implements>
 ---

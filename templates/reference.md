@@ -13,7 +13,7 @@ pmid: <PMID / PMCID or omit>
 generated: { by: <actor>, at: <YYYY-MM-DDTHH:MM:SSZ> }
 # verified: { by: human:<id>, at: <YYYY-MM-DDTHH:MM:SSZ> }
 sources:                            # what this page was distilled from (OKF §5.1)
-  - id: <source-id>
+  - id: source-id                             # stable slug; [^source-id] footnotes join to it
     resource: ../../raw/<topic>/<file>          # local copy under raw/ (git-ignored)
     title: <Title (Author et al., YYYY)>
     author: <author or team:...>                # optional credibility signal

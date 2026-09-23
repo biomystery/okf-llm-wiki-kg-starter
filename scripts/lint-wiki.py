@@ -2,9 +2,10 @@
 """Deterministic lint for the OKF v0.2 wiki. Stdlib only — no PyYAML.
 
 Errors (exit 1):
-  - page missing YAML frontmatter or the required `type:` field
+  - page missing YAML frontmatter, an unterminated frontmatter block, or a missing /
+    non-scalar `type:` field
   - [[wikilink]] with no matching page (by filename, title, or alias)
-  - wiki/index.md row pointing at a nonexistent page
+  - wiki/index.md entry pointing at a nonexistent page
   - page absent from wiki/index.md
   - malformed OKF v0.2 frontmatter: bad `generated`/`verified` actor or datetime,
     `status` outside the lifecycle vocabulary, `sources` entry without `resource`,
@@ -65,7 +66,9 @@ def _strip_comment(line):
             out.append(c)
             if c == quote:
                 quote = None
-        elif c in "\"'":
+        # A quote only opens a scalar at a token boundary, so an apostrophe inside a
+        # bare value (`description: Smith's paper # note`) does not swallow the comment.
+        elif c in "\"'" and (i == 0 or line[i - 1] in " \t[{,:"):
             quote = c
             out.append(c)
         elif c == "#" and (i == 0 or line[i - 1] in " \t"):
@@ -162,7 +165,8 @@ def _parse_block(lines, i, indent):
 
 
 def split_frontmatter(text):
-    """Return (frontmatter dict or None, body)."""
+    """Return (frontmatter dict or None, body). CRLF is normalized by read_text()."""
+    text = text.lstrip("\ufeff")  # an editor's UTF-8 BOM still has frontmatter behind it
     if not text.startswith("---\n"):
         return None, text
     # Closing delimiter is a line that is exactly `---` (not `----`, not `--- x`).
@@ -257,14 +261,14 @@ def check_sources(rel, page, fm, body, errors, warnings):
     for entry in as_entries(fm.get("sources")):
         if entry.get("id"):
             ids.append(str(entry["id"]))
-        res = entry.get("resource")
-        if not res:
-            errors.append(f"{rel}: `sources` entry without `resource` (OKF §5.1)")
-            continue
         lm = entry.get("last_modified")
         if lm and not DATETIME.match(str(lm)):
             errors.append(f"{rel}: `sources[].last_modified: {lm}` is not an ISO 8601 "
                           f"datetime with a UTC offset (OKF §5)")
+        res = entry.get("resource")
+        if not res:
+            errors.append(f"{rel}: `sources` entry without `resource` (OKF §5.1)")
+            continue
         check_path(rel, page, str(res), "sources[].resource", warnings)
     dupes = {i for i in ids if ids.count(i) > 1}
     for d in sorted(dupes):
@@ -348,14 +352,21 @@ def main():
     errors, warnings = [], []
     pages = {}  # path -> (frontmatter, body)
     for p in sorted(WIKI.rglob("*.md")):
-        fm, body = split_frontmatter(p.read_text(encoding="utf-8"))
+        text = p.read_text(encoding="utf-8")
+        fm, body = split_frontmatter(text)
         pages[p] = (fm, body)
         if p.name in SPECIAL:
             continue
         if fm is None:
-            errors.append(f"{p.relative_to(ROOT)}: no YAML frontmatter")
+            unclosed = text.lstrip("\ufeff").startswith("---\n")
+            errors.append(f"{p.relative_to(ROOT)}: " + (
+                "frontmatter block is never closed by a `---` line" if unclosed
+                else "no YAML frontmatter"))
         elif "type" not in fm or not fm["type"]:
             errors.append(f"{p.relative_to(ROOT)}: frontmatter missing required `type:`")
+        elif not isinstance(fm["type"], str):
+            errors.append(f"{p.relative_to(ROOT)}: `type:` must be a single string, "
+                          f"not a list or mapping (OKF §4.1)")
 
     content_pages = {p for p in pages if p.name not in SPECIAL}
     check_reserved(pages, errors, warnings)
@@ -428,6 +439,7 @@ def main():
             tiers["machine-confirmed"] += 1
 
         t = fm.get("type")
+        t = t if isinstance(t, str) else None
         if t and t not in known_types:
             warnings.append(f"{rel}: type `{t}` has no templates/{t}.md (register it — see CLAUDE.md)")
         if inbound[p] == 0 and t != "moc":

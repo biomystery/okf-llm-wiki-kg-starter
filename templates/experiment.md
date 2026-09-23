@@ -9,7 +9,7 @@ stage: planned                      # experiment state: planned | running | done
 generated: { by: <actor>, at: <YYYY-MM-DDTHH:MM:SSZ> }
 # verified: { by: human:<id>, at: <YYYY-MM-DDTHH:MM:SSZ> }
 sources:                            # data, notebooks, protocols this writeup derives from
-  - id: <source-id>
+  - id: source-id                   # stable slug; the body's [^source-id] footnote joins to it
     resource: ../../raw/<topic>/<file>
     title: <human-readable source name>
 ---

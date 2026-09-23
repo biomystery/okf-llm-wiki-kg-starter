@@ -9,7 +9,7 @@ generated: { by: <actor>, at: <YYYY-MM-DDTHH:MM:SSZ> }   # who wrote this conten
 # verified: { by: human:<id>, at: <YYYY-MM-DDTHH:MM:SSZ> }  # add when a human confirms it
 # stale_after: <YYYY-MM-DDTHH:MM:SSZ>                    # optional: when this goes stale
 sources:                            # what this page was distilled from (OKF §5.1)
-  - id: <source-id>
+  - id: source-id                  # stable slug; the body's [^source-id] footnote joins to it
     resource: ../../raw/<topic>/<file>
     title: <human-readable source name>
 ---
