@@ -52,7 +52,7 @@ headers. The build resolver converts `[[wikilinks]]` → relative Markdown links
 type: concept            # REQUIRED. concept | reference | person | project | moc | ...
 title: Human Readable Name
 description: One-line explanation (queryable).
-aliases: [shorthand, "alternate name"]   # so [[shorthand]] resolves
+aliases: [shorthand, "alternate name"]   # search/autocomplete only — links target the filename
 tags: [topic-a, topic-b]
 status: stable           # OKF lifecycle: draft | stable | deprecated (absent ⇒ stable)
 resource: https://…      # optional: canonical URI of the thing this page describes
@@ -93,7 +93,10 @@ URL/DOI in the body's citation line too.
 that source's `sources[].id` — `…as Smith reports.[^smith-2026]` — and define the footnote
 at the bottom. The label is the join key; keep ids stable when rewriting a page.
 
-**Links:** use Obsidian `[[wikilinks]]` in the body to build the knowledge graph. Each page
+**Links:** use Obsidian `[[wikilinks]]` in the body to build the knowledge graph. Target
+the **filename** — `[[leukapheresis-receipt]]` or `[[leukapheresis-receipt|Leukapheresis
+receipt]]` — never a bare title or alias: Obsidian resolves links by filename only, so
+`[[Leukapheresis receipt]]` creates a phantom note (the linter flags it; `--fix` rewrites). Each page
 should link to its relevant MOC/project page. Cross-link related concepts liberally.
 
 ## Ingest (add a source)

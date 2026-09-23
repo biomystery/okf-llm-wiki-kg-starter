@@ -30,8 +30,10 @@ vault does not use.
   - `sources:` lists what the page was distilled from, one entry per source, each with
     `resource:` (a `raw/` path or URL) and a stable `id:`. Cite a claim with a `[^id]`
     footnote keyed to that id.
-- Cross-references are Obsidian `[[wikilinks]]` in the body (aliases resolve too). Link
-  liberally; every page links to its MOC/project page.
+- Cross-references are Obsidian `[[wikilinks]]` in the body, targeting the **filename**
+  (`[[page-stem]]` or `[[page-stem|Display text]]`). Obsidian does not resolve titles or
+  aliases in links; a `[[Title]]` link makes a phantom graph node. Link liberally; every
+  page links to its MOC/project page.
 - The type set is **open** (see "Schema" below).
 
 ## Ingest
