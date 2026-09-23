@@ -12,7 +12,7 @@
 #      Obsidian workspace) into DEST_DIR,
 #   2. removes the example pages and creates the default type dirs,
 #   3. resets wiki/index.md and wiki/log.md to an empty §8/§9 skeleton,
-#   4. titles the README and records which starter commit the vault came from
+#   4. appends a "This vault" profile stub to CLAUDE.md, titles the README and records which starter commit the vault came from
 #      (.starter-version) so later starter improvements can be diffed and pulled in,
 #   5. `git init`s DEST_DIR with an initial commit (no remote — add one yourself).
 #
@@ -108,6 +108,19 @@ EOF
   echo "SITE_NAME=\"$NAME\" ./scripts/build-site.sh ./ ./_site  # static site"
   echo "\`\`\`"
 } > "$DEST/README.md"
+
+# Per-vault profile the schema layer reads first; fill in the placeholders.
+cat >> "$DEST/CLAUDE.md" <<EOF
+
+## This vault
+
+- **Name / scope:** $NAME — <one line: what this vault covers and what is out of scope>
+- **Classification:** <public | internal | confidential> — if not public, follow
+  "Internal / confidential vaults" above.
+- **Where sources come from:** <e.g. SharePoint sites, DOIs, meeting notes>, and which copy
+  is canonical when a source exists in several places.
+- **Types added beyond the defaults:** none yet (register in \`templates/\`, log as Schema).
+EOF
 
 echo "==> git init"
 git -C "$DEST" init -q
