@@ -68,7 +68,12 @@ source itself, then pages for the durable ideas it teaches (a process step, an i
 quality attribute) — not one page per slide. Put numbers that define a process (setpoints,
 ratios, timings) on the page for the thing they parameterize, each footnoted, so a later
 source that changes a number updates one place. Add a `mocs/` hub when a topic has more than
-a handful of pages, and link every new page to it.
+a handful of pages, and link every new page to it. When the source describes a sequence (a process, pipeline,
+protocol, timeline), also write one **end-to-end overview page** first, and link it as
+"Start here" from the MOC and `index.md`. That page should tell the whole story: a short
+narrative, the phases, a step-by-step table with the *why* for each step, and how the
+state changes along the way. Detail pages are for lookup; the overview is where a reader
+learns how the parts fit together. A table of links to the detail pages is not an overview.
 
 ## Query
 
