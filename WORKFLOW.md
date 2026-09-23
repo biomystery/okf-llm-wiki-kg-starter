@@ -29,8 +29,8 @@ sequenceDiagram
     U->>C: "Ingest <source>"
     C->>R: save dated source + provenance
     C->>W: create / merge typed OKF page, wire [[wikilinks]]
-    C->>W: cascade-update affected pages, refresh timestamps
-    C->>W: update index.md · append log.md
+    C->>W: cascade-update affected pages, refresh generated.at
+    C->>W: update index.md · prepend log.md entry
     C-->>U: summary of pages touched
 ```
 
@@ -38,11 +38,14 @@ The LLM:
 
 - picks/creates the right **type-based** subdirectory (`concepts/`, `refs/`, `people/`, …),
 - writes an **OKF page** — YAML frontmatter (required `type`, plus `title`, `description`,
-  `tags`, `timestamp`, …) + a distilled Markdown body,
+  `tags`, and the v0.2 trust families `generated` / `sources` / `status`) + a distilled
+  Markdown body,
 - wires relationships with `[[wikilinks]]` (the knowledge **graph**),
 - merges into an existing page when the source extends it, creates a new page for a new concept,
+- records provenance in `sources:` and attributes individual claims with `[^source-id]`
+  footnotes,
 - flags contradictions with source attribution,
-- updates `wiki/index.md` and appends to `wiki/log.md`.
+- updates `wiki/index.md` and prepends today's entry to `wiki/log.md` (newest first).
 
 ## 3. Compile → static HTML site
 
@@ -64,10 +67,18 @@ backlinks, and search over your `wiki/` while you author.
 
 ## 5. OKF conformance
 
-Pages follow [OKF v0.1](OKF.md): concept-per-file, file path = identity, YAML frontmatter with
+Pages follow [OKF v0.2](OKF.md): concept-per-file, file path = identity, YAML frontmatter with
 at least `type`, Markdown links for cross-references (the resolver emits these from your
-`[[wikilinks]]`), optional `index.md`/`log.md`. This makes the knowledge portable and
-consumable by other agents/tools without lock-in.
+`[[wikilinks]]`), and the reserved `index.md` / `log.md` in their §8 / §9 shapes. On top of
+that, v0.2's trust families travel with every page — `sources` (what it was distilled from),
+`generated` (who wrote it, when), `verified` (who confirmed it), `status` / `stale_after`
+(where it sits in its lifecycle) — so a consumer can judge the knowledge, not just read it.
+`wiki/index.md` declares the target version with `okf_version: "0.2"`.
+
+**Verification is yours.** The agent writes `generated`; only you (`human:<id>`) or an
+automated check (`process:<id>`) writes `verified`. That separation is what makes the derived
+trust tiers mean anything — see [OKF.md](OKF.md) for the tiers and the v0.1 → v0.2 migration
+table.
 
 ## 6. Output: a clean vault + wiki + reusable workflow
 

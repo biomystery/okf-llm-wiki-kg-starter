@@ -1,36 +1,29 @@
 ---
-type: moc
-title: Knowledge Base Index
-description: Catalog of all wiki pages. Read this first.
-timestamp: 2026-07-13
+okf_version: "0.2"
 ---
 
 # Knowledge Base Index
 
-> The catalog / entry point (OKF `index.md`). One row per page, grouped by type.
-> The LLM keeps this in sync on ingest and lint. Replace the example rows below with
-> your own as you ingest sources.
+> The catalog / entry point (OKF `index.md`, §8). One bullet per page, grouped by type, each
+> carrying the page's `description`. The LLM keeps this in sync on ingest and lint. Replace
+> the example entries below with your own as you ingest sources.
+>
+> Index files carry no frontmatter except the bundle-root `okf_version` declaration above.
 
 ## concepts
 
 Distilled ideas, methods, definitions.
 
-| Page | Summary | Updated |
-|------|---------|---------|
-| [[example-concept]] | Example concept page showing the OKF frontmatter + wikilink pattern | 2026-07-13 |
+* [[example-concept]] — A placeholder concept page demonstrating the OKF v0.2 frontmatter + wikilink pattern. *(draft, unverified)*
 
 ## refs
 
-Source/paper pages with provenance (DOI, URL, year).
+Source/paper pages with provenance (`sources`, DOI, URL, year).
 
-| Page | Summary | Updated |
-|------|---------|---------|
-| [[example-reference]] | Example reference page showing provenance frontmatter | 2026-07-13 |
+* [[example-reference]] — A placeholder reference page demonstrating OKF v0.2 provenance and trust frontmatter. *(human-reviewed)*
 
 ## people
 
 People, teams, organizations.
 
-| Page | Summary | Updated |
-|------|---------|---------|
-| [[example-person]] | Example person page | 2026-07-13 |
+* [[example-person]] — A placeholder person page.
