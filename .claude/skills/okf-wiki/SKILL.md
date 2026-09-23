@@ -39,6 +39,13 @@ vault does not use.
 1. Save the source under `raw/<topic>/YYYY-MM-DD-slug.md` (or `.pdf`) using
    `templates/raw-source.md` for pasted text. Record provenance (URL/DOI). `raw/` is
    immutable and git-ignored — never edit an existing raw file.
+   **Document-store sources** (SharePoint/OneDrive/Drive/Confluence): the same file often
+   exists in several places. Pick one canonical copy (prefer the owning team's or the
+   user's named copy; ask only if the copies differ in content), and record the others under
+   `Other copies:`. If the connector returns text rather than the binary, save that
+   extraction as `raw/<topic>/YYYY-MM-DD-slug.md` with `Capture:` saying what was lost
+   (images, charts, tables), and point `resource:`/`url:` on the ref page at the store's
+   web URL. For decks, keep `## Slide N` headings so footnotes can cite slide numbers.
 2. Placement: extends an existing page → **merge** + add source + refresh sections;
    distinct concept/entity → **create** from the right template; spans topics → best-fit
    dir + `[[wikilink]]` cross-refs. A source page itself gets a `refs/` page.
@@ -55,6 +62,13 @@ vault does not use.
    optionally suffixed with the page's derived trust tier as `*(draft, unverified)*`) and
    **prepend** to `wiki/log.md` under today's `## YYYY-MM-DD` heading (newest first):
    `* **Ingest**: <primary page title>` plus `* **Update**: <page>` lines for cascades.
+
+**Decomposing a large source** (a training deck, SOP, or report): one `refs/` page for the
+source itself, then pages for the durable ideas it teaches (a process step, an instrument, a
+quality attribute) — not one page per slide. Put numbers that define a process (setpoints,
+ratios, timings) on the page for the thing they parameterize, each footnoted, so a later
+source that changes a number updates one place. Add a `mocs/` hub when a topic has more than
+a handful of pages, and link every new page to it.
 
 ## Query
 

@@ -162,6 +162,13 @@ useful in *other* projects that follow its native format.
 - [ ] Nothing sensitive pasted into the LLM chat itself.
 - [ ] `git status` shows `raw/` is not staged.
 
+**Internal / confidential vaults.** When the sources are company-internal (SOPs, batch
+data, training decks), the distilled `wiki/` is confidential too — a summary of a
+confidential process is still confidential. Then: host the repo **private** in the owning
+organization, serve the site only behind the org's auth, never copy pages into a public
+vault or this starter, and prefer process/role descriptions over names of individual
+operators or patients/donors (lot and batch IDs are fine if they're not identifying).
+
 ## Obsidian plugins (keep it lean)
 
 This vault bundles **no community plugins**. Add only what earns its place. Recommended

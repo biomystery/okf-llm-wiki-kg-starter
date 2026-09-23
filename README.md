@@ -43,7 +43,7 @@ live in **[CLAUDE.md](CLAUDE.md)** (the "schema layer"). How this maps onto OKF 
 | `raw/` | ❌ git-ignored | Immutable source material (PDFs, pasted text, exports). Read, never modify. |
 | `wiki/` | ✅ | LLM-maintained OKF knowledge pages. Type-based subdirs + `index.md` + `log.md`. |
 | `templates/` | ✅ | OKF-adapted frontmatter templates — also the vault's schema registry. |
-| `scripts/` | ✅ | `build-site.sh` (render static site) + `lint-wiki.py` (deterministic checks). |
+| `scripts/` | ✅ | `new-vault.sh` (stamp out a vault) + `build-site.sh` (render static site) + `lint-wiki.py` (deterministic checks). |
 | `.claude/skills/okf-wiki/` | ✅ | The vault's bundled ingest/query/lint skill for Claude Code. |
 | `.obsidian/` | ✅ | Minimal, clean vault config (no community plugins bundled). |
 | `CLAUDE.md`, `WORKFLOW.md`, `OKF.md` | ✅ | Schema layer + docs. |
@@ -54,7 +54,10 @@ live in **[CLAUDE.md](CLAUDE.md)** (the "schema layer"). How this maps onto OKF 
 
 ## Quickstart
 
-1. **Clone this template**, then open the folder as a vault in [Obsidian](https://obsidian.md).
+1. **Create a vault from this template** — `./scripts/new-vault.sh ~/projects/<name>-wiki "<Name> Wiki"`
+   copies the tracked files, strips the example pages, resets `index.md`/`log.md`, records
+   the starter commit in `.starter-version`, and `git init`s. Then open the folder as a vault
+   in [Obsidian](https://obsidian.md).
 2. **Add a source:** drop a file into `raw/<topic>/`, or paste text and ask your LLM to ingest.
 3. **Ingest** (in Claude Code — the vault bundles its own `okf-wiki` project skill under
    `.claude/skills/`, so no install is needed):
