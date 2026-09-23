@@ -4,7 +4,9 @@ title: <Topic> MOC
 description: Map of content for <topic> — the hub its pages link back to.
 aliases: []
 tags: []
-timestamp: <YYYY-MM-DD>
+status: stable                      # draft | stable | deprecated  (OKF §5.4)
+generated: { by: <actor>, at: <YYYY-MM-DDTHH:MM:SSZ> }
+sources: []
 ---
 
 # <Topic> MOC

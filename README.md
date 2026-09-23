@@ -5,8 +5,10 @@ base** that is:
 
 - authored as an **Obsidian vault** (write in `[[wikilinks]]`, live graph, backlinks),
 - maintained by an LLM using the **Karpathy LLM-wiki pattern** (`raw/` → `wiki/`; ingest / query / lint),
-- conformant to the **[Open Knowledge Format (OKF) v0.1](https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing)**
-  so the knowledge is portable and agent-readable across tools, and
+- conformant to the **[Open Knowledge Format (OKF) v0.2](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)**
+  so the knowledge is portable, agent-readable, and **trustable** — every page records where
+  it came from (`sources`), who wrote it and when (`generated`), who confirmed it
+  (`verified`), and where it sits in its lifecycle (`status`, `stale_after`) — and
 - publishable as a **static, searchable website** via
   [`wiki-hosting-project`](https://github.com/biomystery/wiki-hosting-project).
 
@@ -62,7 +64,8 @@ live in **[CLAUDE.md](CLAUDE.md)** (the "schema layer"). How this maps onto OKF 
 4. **Query:** "What do I know about X?" — the LLM reads `wiki/index.md` and answers with citations.
 5. **Lint** periodically: "Lint the wiki" — or run the deterministic pass yourself:
    ```sh
-   python3 scripts/lint-wiki.py      # frontmatter, broken wikilinks, index sync, orphans
+   python3 scripts/lint-wiki.py      # frontmatter + OKF v0.2 trust fields, broken wikilinks,
+                                     # index/log structure, provenance paths, orphans
    ```
 6. **Publish** to a static site:
    ```sh
@@ -96,6 +99,24 @@ search, screenshot the graph).
 HTML with resolved links and client-side search; preview with
 `python3 -m http.server -d _site 8090`. The site is a disposable build artifact — only
 `wiki/` is the source of truth.
+
+## What OKF v0.2 buys you
+
+A corpus written mostly by an agent needs to answer four questions from frontmatter alone,
+and v0.2 makes each one a field the linter enforces:
+
+| Question | Field | Where it comes from |
+|---|---|---|
+| What was this made from? | `sources: [{ id, resource, title, … }]` | the ingest step, pointing into `raw/` |
+| Who wrote it, and when did it last change? | `generated: { by, at }` | the agent (`claude-code/opus-5`) or you (`human:<id>`) |
+| Has anyone checked it? | `verified: [{ by, at }]` | **only you or an automated process** — never the agent that wrote the page |
+| Is it current? | `status`, `stale_after` | `draft`/`stable`/`deprecated`, plus an optional expiry instant |
+
+Per-claim attribution uses footnotes keyed to a source's `id` (`…as reported.[^smith-2026]`),
+so a reader can trace one sentence to one source. Trust tiers (unverified /
+machine-confirmed / human-reviewed) are *derived* from `verified`, never stored;
+`lint-wiki.py` prints the mix so you can see how much of the vault you have actually read.
+Details and the v0.1 → v0.2 migration table are in **[OKF.md](OKF.md)**.
 
 ## Publishing
 
