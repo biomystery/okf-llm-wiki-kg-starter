@@ -103,7 +103,8 @@ HTML with resolved links and client-side search; preview with
 ## What OKF v0.2 buys you
 
 A corpus written mostly by an agent needs to answer four questions from frontmatter alone,
-and v0.2 makes each one a field the linter enforces:
+and v0.2 makes each one a field the linter checks (missing families are warnings, malformed
+ones are errors — OKF never lets a consumer reject a bundle over an absent field):
 
 | Question | Field | Where it comes from |
 |---|---|---|

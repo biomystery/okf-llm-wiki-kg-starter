@@ -34,12 +34,23 @@ place OKF permits frontmatter in an index file.
 | `index.md` progressive disclosure (§8) | `wiki/index.md` — sections of `* [[page]] — description` bullets, no frontmatter except `okf_version` |
 | `log.md` update history (§9) | `wiki/log.md` — `## YYYY-MM-DD` headings, newest first, `* **Ingest**: …` entries |
 | Attested Computation (§10) | optional; `templates/attested-computation.md` registers the type when a vault needs it |
-| Extensions — any additional keys (§4.1) | `aliases:`, `stage:`, `year:`, `doi:`, `pmid:` |
+| Extensions — any additional keys (§4.1) | `aliases:`, `stage:`, `venue:`, `year:`, `doi:`, `pmid:` |
 
 `type` values here are lowercase and singular (`concept`, `reference`, `person`) rather than
 the spec's Title Case examples (`BigQuery Table`, `Metric`). OKF does not register type
 values centrally (§4.1) — consumers must tolerate any string — and lowercase keeps
-`type` identical to the directory name under `wiki/`.
+`type` identical to the directory name under `wiki/`. The one place this costs something is
+`attested-computation`: §10.5 has consumers *discover* computations by the literal
+`type: Attested Computation`, so a generic OKF consumer will not find this vault's
+lowercase spelling. Rename the type (and `templates/attested-computation.md`) if you ever
+need that discovery path.
+
+Two caveats on the mapping above. `raw/` is git-ignored and sits *outside* the bundle root,
+so `sources[].resource` paths into it resolve locally but dangle for anyone who receives
+only `wiki/` — the linter warns on every one of them, which on a fresh clone is expected
+rather than a defect. And `lint-wiki.py` is a **producer-side** check, deliberately stricter
+than §11: it errors on broken wikilinks, a page missing from `index.md`, and malformed trust
+fields, none of which may make a *consumer* reject a bundle.
 
 ## The one wrinkle: wikilinks vs. Markdown links
 
@@ -72,8 +83,12 @@ reports the tier mix so you can see how much of the vault has actually been revi
 
 ## Migrating a v0.1 vault
 
-Clones made before this change carry v0.1 frontmatter. The linter warns (never errors) on
-legacy fields, so migrate at your own pace:
+Clones made before this change carry v0.1 frontmatter. Legacy *fields* — `timestamp:`,
+`raw:`, a body `## Citations` list — are warnings, so migrate those at your own pace. Three
+rows below are hard errors instead, because §5.4, §8, and §9 define their shape rather than
+leaving it optional: a `status:` outside the lifecycle vocabulary, frontmatter in
+`wiki/index.md`, and a non-ISO `log.md` date heading. Do those three first and the linter
+goes green; the rest can follow page by page.
 
 | v0.1 | v0.2 | Notes |
 |---|---|---|
@@ -106,4 +121,7 @@ Producer conventions this vault also holds itself to:
 - [x] `status` uses the §5.4 vocabulary only.
 - [x] `wiki/log.md` records change history.
 
-`python3 scripts/lint-wiki.py` checks every box above deterministically.
+`python3 scripts/lint-wiki.py` checks these deterministically — the structural three as
+errors, the producer conventions mostly as warnings. The link box is the exception: the
+linter checks that every `[[wikilink]]` resolves, but the rewrite into Markdown links
+happens in the build, not here.

@@ -51,7 +51,8 @@ vault does not use.
 5. Cascade: update materially affected pages and refresh each one's `generated.at` (and `by`,
    if a different actor). Leave `verified:` alone — a page whose content changed after a
    sign-off is no longer covered by it, and dropping the entry is the user's call.
-6. Update `wiki/index.md` (a `* [[page]] — description` bullet under its type section) and
+6. Update `wiki/index.md` (a `* [[page]] — description` bullet under its type section,
+   optionally suffixed with the page's derived trust tier as `*(draft, unverified)*`) and
    **prepend** to `wiki/log.md` under today's `## YYYY-MM-DD` heading (newest first):
    `* **Ingest**: <primary page title>` plus `* **Update**: <page>` lines for cascades.
 
