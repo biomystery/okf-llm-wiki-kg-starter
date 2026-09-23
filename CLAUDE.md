@@ -18,6 +18,9 @@ skill, whose output format does not match this vault (see "Divergence" below).
   - `wiki/index.md` — catalog / progressive-disclosure entry point (the root MOC).
     **Read first** on query.
   - `wiki/log.md` — change history, newest first.
+- **`notes/`** — working notes (review findings, source comparisons, open questions). Not
+  OKF pages: not linted, indexed, logged, or published. Put findings here when the user
+  wants them recorded but **not** ingested; see `notes/README.md`.
 - **`templates/`** — OKF frontmatter templates for new pages (`concept.md`, `reference.md`,
   `person.md`, `project.md`, `experiment.md`, `moc.md`, `attested-computation.md`,
   `raw-source.md`). Doubles as the **schema registry** (see "Flexible schema" below).

@@ -77,6 +77,12 @@ narrative, the phases, a step-by-step table with the *why* for each step, and ho
 state changes along the way. Detail pages are for lookup; the overview is where a reader
 learns how the parts fit together. A table of links to the detail pages is not an overview.
 
+## Notes (not ingest)
+
+When the user wants findings kept but not ingested (a conflict review, a comparison, open
+questions), write `notes/YYYY-MM-DD-slug.md` instead of touching `wiki/`. Don't update
+`index.md`/`log.md`. Notes may link into the wiki; the wiki never links to notes.
+
 ## Query
 
 1. Read `wiki/index.md` to locate pages; read them; synthesize.
