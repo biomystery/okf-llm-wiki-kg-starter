@@ -6,6 +6,7 @@ aliases: []
 tags: []
 status: stable                      # draft | stable | deprecated  (OKF §5.4)
 resource: <canonical landing page>  # the thing this page describes (OKF §4.1)
+url: <canonical landing page>       # mirrors `resource:`; the site build renders this one clickable
 year: <YYYY>
 venue: <journal / publisher / site>
 doi: <10.xxxx/... or omit>

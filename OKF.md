@@ -34,7 +34,7 @@ place OKF permits frontmatter in an index file.
 | `index.md` progressive disclosure (§8) | `wiki/index.md` — sections of `* [[page]] — description` bullets, no frontmatter except `okf_version` |
 | `log.md` update history (§9) | `wiki/log.md` — `## YYYY-MM-DD` headings, newest first, `* **Ingest**: …` entries |
 | Attested Computation (§10) | optional; `templates/attested-computation.md` registers the type when a vault needs it |
-| Extensions — any additional keys (§4.1) | `aliases:`, `stage:`, `venue:`, `year:`, `doi:`, `pmid:` |
+| Extensions — any additional keys (§4.1) | `aliases:`, `stage:`, `venue:`, `year:`, `doi:`, `pmid:`, `url:` |
 
 `type` values here are lowercase and singular (`concept`, `reference`, `person`) rather than
 the spec's Title Case examples (`BigQuery Table`, `Metric`). OKF does not register type
@@ -51,6 +51,14 @@ only `wiki/` — the linter warns on every one of them, which on a fresh clone i
 rather than a defect. And `lint-wiki.py` is a **producer-side** check, deliberately stricter
 than §11: it errors on broken wikilinks, a page missing from `index.md`, and malformed trust
 fields, none of which may make a *consumer* reject a bundle.
+
+Two build-side consequences of following §8, both verified against the
+[`wiki-hosting-project`](https://github.com/biomystery/wiki-hosting-project) resolver: page
+titles come from filenames, not frontmatter, so `wiki/index.md` losing its `title:` changes
+nothing; but the graph colours nodes by frontmatter `type`, so the index node now renders in
+the default grey instead of the MOC blue. Separately, the resolver renders a frontmatter
+`url:` as a clickable link under a page's title — reference pages therefore carry `url:`
+alongside the OKF-recommended `resource:`.
 
 ## The one wrinkle: wikilinks vs. Markdown links
 

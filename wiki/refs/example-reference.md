@@ -6,6 +6,7 @@ aliases: [Author 2026, example ref]
 tags: [meta, example]
 status: stable
 resource: https://example.org/canonical-landing-page
+url: https://example.org/canonical-landing-page
 year: 2026
 venue: Journal or Publisher Name
 doi: 10.0000/example.doi
@@ -28,7 +29,9 @@ sources:
 
 What the source says, distilled. Do not paste copyrighted full text — keep the original in
 `raw/` (git-ignored) and summarize here. `sources[].resource` points at that local copy;
-`resource:` at the top points at the published landing page the reader should cite.
+`resource:` at the top points at the published landing page the reader should cite, and
+`url:` mirrors it because the site build turns that field into a clickable link under the
+title (frontmatter itself never reaches the HTML).
 
 ## Key points
 

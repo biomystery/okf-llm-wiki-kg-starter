@@ -84,8 +84,10 @@ sources:                 # what this page was distilled from
 **Reference (source/paper) pages** carry the provenance of the material they describe in
 `sources:` (one entry per local copy or canonical artifact) plus bibliographic keys in
 frontmatter — capture at ingest: `year:`, `venue:` (journal/publisher/site), and whenever
-available `doi:`, `pmid:`/`pmcid:`, and `resource:` (canonical landing page). Put the
-clickable URL/DOI in the body's citation line too.
+available `doi:`, `pmid:`/`pmcid:`, and `resource:` (canonical landing page). Mirror
+`resource:` into `url:` on reference pages — the site build renders `url:` as a clickable
+link under the title, and frontmatter otherwise never reaches the HTML. Put the clickable
+URL/DOI in the body's citation line too.
 
 **Per-claim attribution:** cite a specific source with a Markdown footnote whose label is
 that source's `sources[].id` — `…as Smith reports.[^smith-2026]` — and define the footnote
