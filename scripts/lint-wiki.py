@@ -5,6 +5,9 @@ Errors (exit 1):
   - page missing YAML frontmatter, an unterminated frontmatter block, or a missing /
     non-scalar `type:` field
   - [[wikilink]] with no matching page (by filename, title, or alias)
+  - [[wikilink]] that matches a page only by its title or an alias, not its filename:
+    Obsidian resolves links by filename only, so such a link opens (and graphs) a phantom
+    note. `--fix` rewrites it to [[filename|original text]].
   - wiki/index.md entry pointing at a nonexistent page
   - page absent from wiki/index.md
   - malformed OKF v0.2 frontmatter: bad `generated`/`verified` actor or datetime,
@@ -21,9 +24,12 @@ Warnings (exit 0):
   - `sources[].resource` / `raw:` path that doesn't exist locally (raw/ is git-ignored,
     so this is expected on fresh clones)
   - footnote `[^id]` with no definition, or not matching any `sources[].id`
+  - footnote `[^id]` inside a blockquote/callout (Obsidian doesn't render it there)
   - page whose `type` has no templates/<type>.md (unregistered schema — see CLAUDE.md)
   - orphan page: no inbound wikilinks from any page other than index/log
   - log.md entries not in newest-first order; bundle root without `okf_version`
+
+Usage: python3 scripts/lint-wiki.py [--fix]
 
 The heuristic checks (contradictions, staleness of *content*, missing cross-topic refs) are
 the LLM's job — see .claude/skills/okf-wiki/SKILL.md.
@@ -295,6 +301,14 @@ def check_path(rel, page, value, label, warnings):
         warnings.append(f"{rel}: {label} not found locally: {value}")
 
 
+def check_callout_footnotes(rel, body, warnings):
+    """Obsidian renders callout bodies separately, so [^id] refs inside them show as text."""
+    for n, line in enumerate(strip_code(body).splitlines(), 1):
+        if line.lstrip().startswith(">") and re.search(r"\[\^[\w-]+\](?!:)", line):
+            warnings.append(f"{rel}: footnote ref inside a callout/blockquote (body line {n}) — "
+                            f"Obsidian won't render it; move it after the callout")
+
+
 def check_legacy(rel, page, fm, body, warnings):
     """OKF §13.1 — fields v0.2 supersedes."""
     if fm.get("timestamp"):
@@ -348,7 +362,28 @@ def check_reserved(pages, errors, warnings):
                 warnings.append(f"{rel}: date headings are not newest-first (OKF §9)")
 
 
+def fix_links(page, mapping):
+    """Rewrite title/alias links to filename links, keeping the text readers see."""
+    def sub(m):
+        bang, name = m.group(1), m.group(2).strip()
+        if name not in mapping:
+            return m.group(0)
+        full = m.group(0)
+        rest = full[len(bang) + 2 + len(m.group(2)):-2]  # "#heading", "|display", both, or ""
+        head, _, disp = rest.partition("|")
+        return f"{bang}[[{mapping[name]}{head}|{disp or name}]]"
+    text = page.read_text(encoding="utf-8")
+    parts, last = [], 0
+    for f in FENCE.finditer(text):  # leave fenced code alone
+        parts.append(WIKILINK.sub(sub, text[last:f.start()]))
+        parts.append(f.group(0))
+        last = f.end()
+    parts.append(WIKILINK.sub(sub, text[last:]))
+    page.write_text("".join(parts), encoding="utf-8")
+
+
 def main():
+    fix = "--fix" in sys.argv[1:]
     errors, warnings = [], []
     pages = {}  # path -> (frontmatter, body)
     for p in sorted(WIKI.rglob("*.md")):
@@ -360,7 +395,9 @@ def main():
         if fm is None:
             unclosed = text.lstrip("\ufeff").startswith("---\n")
             errors.append(f"{p.relative_to(ROOT)}: " + (
-                "frontmatter block is never closed by a `---` line" if unclosed
+                "empty note — likely created by clicking an unresolved [[link]] in Obsidian; "
+                "delete it and fix the link" if not text.strip()
+                else "frontmatter block is never closed by a `---` line" if unclosed
                 else "no YAML frontmatter"))
         elif "type" not in fm or not fm["type"]:
             errors.append(f"{p.relative_to(ROOT)}: frontmatter missing required `type:`")
@@ -384,13 +421,24 @@ def main():
             targets.setdefault(n.lower(), set()).add(p)
 
     # Wikilink resolution + inbound-link counts.
+    stems = {}
+    for p in content_pages:
+        stems.setdefault(p.stem.lower(), set()).add(p)
     inbound = {p: 0 for p in content_pages}
+    rewrites = {}  # page -> {link name: target stem}; links Obsidian can't resolve
     for p, (fm, body) in pages.items():
         for m in WIKILINK.finditer(strip_code(body)):
             name = m.group(2).strip()
             if Path(name).suffix.lower() in ASSET_EXTS:
                 continue  # attachment (image/pdf/canvas), out of scope
-            hits = targets.get(name.removesuffix(".md").lower(), set())
+            key = Path(name.removesuffix(".md")).name.lower()  # [[dir/stem]] → stem
+            hits = targets.get(key, set())
+            if hits and key not in stems:
+                if len(hits) == 1:
+                    rewrites.setdefault(p, {})[name] = next(iter(hits)).stem
+                errors.append(f"{p.relative_to(ROOT)}: [[{name}]] matches a title/alias, not a "
+                              f"filename — Obsidian won't resolve it"
+                              + (f"; use [[{next(iter(hits)).stem}|{name}]] (--fix)" if len(hits) == 1 else ""))
             if not hits:
                 errors.append(f"{p.relative_to(ROOT)}: broken wikilink [[{name}]]")
             elif len(hits) > 1:
@@ -425,6 +473,7 @@ def main():
         check_trust(rel, fm, errors, warnings)
         check_sources(rel, p, fm, body, errors, warnings)
         check_legacy(rel, p, fm, body, warnings)
+        check_callout_footnotes(rel, body, warnings)
         if fm.get("type") == "attested-computation":
             check_computation(rel, p, fm, body, errors, warnings)
         if fm.get("resource"):
@@ -444,6 +493,13 @@ def main():
             warnings.append(f"{rel}: type `{t}` has no templates/{t}.md (register it — see CLAUDE.md)")
         if inbound[p] == 0 and t != "moc":
             warnings.append(f"{rel}: orphan — no inbound wikilinks from other pages")
+
+    if fix and rewrites:
+        for page, mapping in rewrites.items():
+            fix_links(page, mapping)
+        n = sum(len(m) for m in rewrites.values())
+        print(f"fixed {n} title/alias link(s) in {len(rewrites)} page(s) — re-run to verify\n")
+        errors = [e for e in errors if "Obsidian won't resolve" not in e or "(--fix)" not in e]
 
     for e in errors:
         print(f"ERROR   {e}")

@@ -18,6 +18,9 @@ skill, whose output format does not match this vault (see "Divergence" below).
   - `wiki/index.md` — catalog / progressive-disclosure entry point (the root MOC).
     **Read first** on query.
   - `wiki/log.md` — change history, newest first.
+- **`notes/`** — working notes (review findings, source comparisons, open questions). Not
+  OKF pages: not linted, indexed, logged, or published. Put findings here when the user
+  wants them recorded but **not** ingested; see `notes/README.md`.
 - **`templates/`** — OKF frontmatter templates for new pages (`concept.md`, `reference.md`,
   `person.md`, `project.md`, `experiment.md`, `moc.md`, `attested-computation.md`,
   `raw-source.md`). Doubles as the **schema registry** (see "Flexible schema" below).
@@ -52,7 +55,7 @@ headers. The build resolver converts `[[wikilinks]]` → relative Markdown links
 type: concept            # REQUIRED. concept | reference | person | project | moc | ...
 title: Human Readable Name
 description: One-line explanation (queryable).
-aliases: [shorthand, "alternate name"]   # so [[shorthand]] resolves
+aliases: [shorthand, "alternate name"]   # search/autocomplete only — links target the filename
 tags: [topic-a, topic-b]
 status: stable           # OKF lifecycle: draft | stable | deprecated (absent ⇒ stable)
 resource: https://…      # optional: canonical URI of the thing this page describes
@@ -89,11 +92,22 @@ available `doi:`, `pmid:`/`pmcid:`, and `resource:` (canonical landing page). Mi
 link under the title, and frontmatter otherwise never reaches the HTML. Put the clickable
 URL/DOI in the body's citation line too.
 
+**Footnotes never go inside callouts or blockquotes** — Obsidian doesn't render them there;
+put the `[^id]` on a line right after the callout.
+
 **Per-claim attribution:** cite a specific source with a Markdown footnote whose label is
 that source's `sources[].id` — `…as Smith reports.[^smith-2026]` — and define the footnote
 at the bottom. The label is the join key; keep ids stable when rewriting a page.
 
-**Links:** use Obsidian `[[wikilinks]]` in the body to build the knowledge graph. Each page
+**Line breaks:** never hard-wrap prose in `wiki/` or `notes/`. Write each paragraph, list
+item and callout line as **one line**: Obsidian (default settings) and the site renderer
+show single newlines as visible breaks. Tables, code/mermaid blocks and frontmatter are
+unaffected.
+
+**Links:** use Obsidian `[[wikilinks]]` in the body to build the knowledge graph. Target
+the **filename** — `[[leukapheresis-receipt]]` or `[[leukapheresis-receipt|Leukapheresis
+receipt]]` — never a bare title or alias: Obsidian resolves links by filename only, so
+`[[Leukapheresis receipt]]` creates a phantom note (the linter flags it; `--fix` rewrites). Each page
 should link to its relevant MOC/project page. Cross-link related concepts liberally.
 
 ## Ingest (add a source)
@@ -161,6 +175,13 @@ useful in *other* projects that follow its native format.
       of them leaks a sensitive filename.
 - [ ] Nothing sensitive pasted into the LLM chat itself.
 - [ ] `git status` shows `raw/` is not staged.
+
+**Internal / confidential vaults.** When the sources are company-internal (SOPs, batch
+data, training decks), the distilled `wiki/` is confidential too — a summary of a
+confidential process is still confidential. Then: host the repo **private** in the owning
+organization, serve the site only behind the org's auth, never copy pages into a public
+vault or this starter, and prefer process/role descriptions over names of individual
+operators or patients/donors (lot and batch IDs are fine if they're not identifying).
 
 ## Obsidian plugins (keep it lean)
 
