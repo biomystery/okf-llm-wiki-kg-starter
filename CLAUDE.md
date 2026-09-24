@@ -92,6 +92,9 @@ available `doi:`, `pmid:`/`pmcid:`, and `resource:` (canonical landing page). Mi
 link under the title, and frontmatter otherwise never reaches the HTML. Put the clickable
 URL/DOI in the body's citation line too.
 
+**Footnotes never go inside callouts or blockquotes** — Obsidian doesn't render them there;
+put the `[^id]` on a line right after the callout.
+
 **Per-claim attribution:** cite a specific source with a Markdown footnote whose label is
 that source's `sources[].id` — `…as Smith reports.[^smith-2026]` — and define the footnote
 at the bottom. The label is the join key; keep ids stable when rewriting a page.

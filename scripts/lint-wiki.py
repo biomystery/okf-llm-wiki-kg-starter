@@ -24,6 +24,7 @@ Warnings (exit 0):
   - `sources[].resource` / `raw:` path that doesn't exist locally (raw/ is git-ignored,
     so this is expected on fresh clones)
   - footnote `[^id]` with no definition, or not matching any `sources[].id`
+  - footnote `[^id]` inside a blockquote/callout (Obsidian doesn't render it there)
   - page whose `type` has no templates/<type>.md (unregistered schema — see CLAUDE.md)
   - orphan page: no inbound wikilinks from any page other than index/log
   - log.md entries not in newest-first order; bundle root without `okf_version`
@@ -300,6 +301,14 @@ def check_path(rel, page, value, label, warnings):
         warnings.append(f"{rel}: {label} not found locally: {value}")
 
 
+def check_callout_footnotes(rel, body, warnings):
+    """Obsidian renders callout bodies separately, so [^id] refs inside them show as text."""
+    for n, line in enumerate(strip_code(body).splitlines(), 1):
+        if line.lstrip().startswith(">") and re.search(r"\[\^[\w-]+\](?!:)", line):
+            warnings.append(f"{rel}: footnote ref inside a callout/blockquote (body line {n}) — "
+                            f"Obsidian won't render it; move it after the callout")
+
+
 def check_legacy(rel, page, fm, body, warnings):
     """OKF §13.1 — fields v0.2 supersedes."""
     if fm.get("timestamp"):
@@ -464,6 +473,7 @@ def main():
         check_trust(rel, fm, errors, warnings)
         check_sources(rel, p, fm, body, errors, warnings)
         check_legacy(rel, p, fm, body, warnings)
+        check_callout_footnotes(rel, body, warnings)
         if fm.get("type") == "attested-computation":
             check_computation(rel, p, fm, body, errors, warnings)
         if fm.get("resource"):
