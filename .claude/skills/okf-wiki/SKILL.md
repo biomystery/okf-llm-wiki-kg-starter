@@ -34,6 +34,8 @@ vault does not use.
   (`[[page-stem]]` or `[[page-stem|Display text]]`). Obsidian does not resolve titles or
   aliases in links; a `[[Title]]` link makes a phantom graph node. Link liberally; every
   page links to its MOC/project page.
+- **No hard wraps** in page or note bodies: one line per paragraph, list item and callout
+  line. Obsidian renders single newlines as line breaks.
 - The type set is **open** (see "Schema" below).
 
 ## Ingest

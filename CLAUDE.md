@@ -96,6 +96,11 @@ URL/DOI in the body's citation line too.
 that source's `sources[].id` — `…as Smith reports.[^smith-2026]` — and define the footnote
 at the bottom. The label is the join key; keep ids stable when rewriting a page.
 
+**Line breaks:** never hard-wrap prose in `wiki/` or `notes/`. Write each paragraph, list
+item and callout line as **one line**: Obsidian (default settings) and the site renderer
+show single newlines as visible breaks. Tables, code/mermaid blocks and frontmatter are
+unaffected.
+
 **Links:** use Obsidian `[[wikilinks]]` in the body to build the knowledge graph. Target
 the **filename** — `[[leukapheresis-receipt]]` or `[[leukapheresis-receipt|Leukapheresis
 receipt]]` — never a bare title or alias: Obsidian resolves links by filename only, so
